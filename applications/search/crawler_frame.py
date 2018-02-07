@@ -49,6 +49,7 @@ class CrawlerFrame(IApplication):
 def extract_next_links(rawDataObj):
     outputLinks = []
 
+    #get href links
     page = etree.HTML(rawDataObj.content)
     print('\nEnter in extract_next_links\n')
     for link in page.xpath("//@href"):
