@@ -48,6 +48,12 @@ class CrawlerFrame(IApplication):
     
 def extract_next_links(rawDataObj):
     outputLinks = []
+
+    page = etree.HTML(rawDataObj.content)
+    print('\nEnter in extract_next_links\n')
+    for link in page.xpath("//@href"):
+        print(link)
+        outputLinks.append(link)
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
