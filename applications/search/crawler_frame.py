@@ -1,4 +1,4 @@
-import logging
+mport logging
 from datamodel.search.Haodoz1Qiancw1Xinhew1_datamodel import Haodoz1Qiancw1Xinhew1Link, OneHaodoz1Qiancw1Xinhew1UnProcessedLink, add_server_copy, get_downloaded_content
 from spacetime.client.IApplication import IApplication
 from spacetime.client.declarations import Producer, GetterSetter, Getter, ServerTriggers
@@ -51,11 +51,9 @@ def extract_next_links(rawDataObj):
 
     #get href links
     page = etree.HTML(rawDataObj.content)
-    print('\nEnter in extract_next_links\n')
-    for link in page.xpath("//@href"):
-        print(link)
-        outputLinks.append(link)
-        
+    for url in page.xpath("//@href"):
+        if is_valid(url):
+            outputLinks.append(url)
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
