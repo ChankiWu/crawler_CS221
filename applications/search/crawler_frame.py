@@ -1,4 +1,4 @@
-mport logging
+import logging
 from datamodel.search.Haodoz1Qiancw1Xinhew1_datamodel import Haodoz1Qiancw1Xinhew1Link, OneHaodoz1Qiancw1Xinhew1UnProcessedLink, add_server_copy, get_downloaded_content
 from spacetime.client.IApplication import IApplication
 from spacetime.client.declarations import Producer, GetterSetter, Getter, ServerTriggers
