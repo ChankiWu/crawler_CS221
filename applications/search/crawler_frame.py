@@ -6,6 +6,8 @@ from lxml import html,etree
 import re, os
 from time import time
 from uuid import uuid4
+import validators
+
 
 from urlparse import urlparse, parse_qs
 from uuid import uuid4
@@ -78,12 +80,14 @@ def is_valid(url):
     parsed = urlparse(url)
     if parsed.scheme not in set(["http", "https"]):
         return False
+    if not validators.url(parsed):
+        return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
-            and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
-            + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
+            and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico|jpg|svg" + "|png|tiff?|mid|mp2|mp3|mp4"\
+            + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|webm" \
             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
-            + "|thmx|mso|arff|rtf|jar|csv"\
+            + "|thmx|mso|arff|rtf|jar|csv|json|xml|eot|otf|ttf|woff|woff2|cml|sli"\
             + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
     except TypeError:
