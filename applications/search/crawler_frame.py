@@ -1,5 +1,6 @@
 import logging
 from datamodel.search.Haodoz1Qiancw1Xinhew1_datamodel import Haodoz1Qiancw1Xinhew1Link, OneHaodoz1Qiancw1Xinhew1UnProcessedLink, add_server_copy, get_downloaded_content
+from datamodel.search.Robot import Robot
 from spacetime.client.IApplication import IApplication
 from spacetime.client.declarations import Producer, GetterSetter, Getter, ServerTriggers
 from lxml import html,etree
@@ -14,6 +15,10 @@ from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
+
+TRAP_POOL = {"calendar.ics.uci.edu", "drzaius.ics.uci.edu/cgi-bin/cvsweb.cgi/", "flamingo.ics.uci.edu/releases/"
+    , "fano.ics.uci.edu/", "ironwood.ics.uci.edu", "djp3-pc2.ics.uci.edu/LUCICodeRepository/",
+             "archive.ics.uci.edu/ml", "www.ics.uci.edu/~xhx/project/MotifMap/"}
 
 @Producer(Haodoz1Qiancw1Xinhew1Link)
 @GetterSetter(OneHaodoz1Qiancw1Xinhew1UnProcessedLink)
@@ -40,7 +45,7 @@ class CrawlerFrame(IApplication):
             downloaded = link.download()
             links = extract_next_links(downloaded)
             for l in links:
-                if is_valid(l):
+                if is_valid(l) and Robot.Allowed(l,Haodoz1Qiancw1Xinhew1Link(l).user_agent_string):
                     self.frame.add(Haodoz1Qiancw1Xinhew1Link(l))
 
     def shutdown(self):
@@ -52,11 +57,13 @@ def extract_next_links(rawDataObj):
     outputLinks = []
 
     #get external links
-    page = etree.HTML(rawDataObj.content)
-    print('\nEnter in extract_next_links\n')
-    for link in page.xpath("//@href"):
-        print(link)
-        outputLinks.append(link)
+    if(rawDataObj.http_code == 200 and (rawDataObj.error_message == None or rawDataObj.error_message == '') and not rawDataObj.is_redirected):
+      page = etree.HTML(rawDataObj.content)
+      print('\nEnter in extract_next_links\n')
+      for link in page.xpath("//@href"):
+         if is_valid(link):
+           print(link)
+           outputLinks.append(link)
         
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
@@ -77,7 +84,27 @@ def is_valid(url):
     Robot rules and duplication rules are checked separately.
     This is a great place to filter out crawler traps.
     '''
+
+    # check trap
+    if url == None or url == '':
+        return False
+
+    for trap in TRAP_POOL:
+        if url.__contains__(trap):
+            return False
+
     parsed = urlparse(url)
+    path = parsed.path
+
+    split = path.split('.php')
+    if len(split) > 2:
+        return False
+
+    # filter out dynamatic request url
+    if (path.__contains__('.php') and path.__contains__('?')) or (
+            path.__contains__('.php') and not path.endswith('.php')):
+        return False
+
     if parsed.scheme not in set(["http", "https"]):
         return False
     if not validators.url(parsed):
