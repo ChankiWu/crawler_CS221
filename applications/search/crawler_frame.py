@@ -50,10 +50,14 @@ def extract_next_links(rawDataObj):
     outputLinks = []
 
     #get href links
+    rest_size = 300
     page = etree.HTML(rawDataObj.content)
     for url in page.xpath("//@href"):
         if is_valid(url):
             outputLinks.append(url)
+            rest_size -= 1
+        if rest_size <= 0:
+            break
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
@@ -78,11 +82,12 @@ def is_valid(url):
         return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
-            and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
+            and not (re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
             + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
             + "|thmx|mso|arff|rtf|jar|csv"\
-            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()) or \
+            re.match(".*(/calendar/|(/misc|/sites|/all|/themes|/modules|/profiles|/css|/field|/node|/theme){3}).*", parsed.path.lower()))
 
     except TypeError:
         print ("TypeError for ", parsed)
