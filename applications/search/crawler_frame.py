@@ -60,6 +60,8 @@ def extract_next_links(rawDataObj):
                 rest_size -= 1
             if rest_size <= 0:
                 break
+    else :
+        print "Catch error: ", rawDataObj.error_message
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
