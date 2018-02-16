@@ -46,8 +46,6 @@ class CrawlerFrame(IApplication):
             "Time time spent this session: ",
             time() - self.starttime, " seconds.")
 
-counter = 0
-
 def extract_next_links(rawDataObj):
 
     outputLinks = []
@@ -62,13 +60,6 @@ def extract_next_links(rawDataObj):
                 rest_size -= 1
             if rest_size <= 0:
                 break
-
-    global counter
-    counter += 1
-    print "extracting: No.", counter, "wed with", len(outputLinks), "links."
-    of = open("web/" + str(counter) + ".html", 'w')
-    of.write(rawDataObj.content)
-    of.close()
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
