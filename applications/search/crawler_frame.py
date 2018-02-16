@@ -4,7 +4,7 @@ from spacetime.client.IApplication import IApplication
 from spacetime.client.declarations import Producer, GetterSetter, Getter, ServerTriggers
 from lxml import html,etree
 import re, os
-from time import time
+from time import time, sleep
 from uuid import uuid4
 
 from urlparse import urlparse, parse_qs
@@ -45,19 +45,30 @@ class CrawlerFrame(IApplication):
         print (
             "Time time spent this session: ",
             time() - self.starttime, " seconds.")
-    
+
+counter = 0
+
 def extract_next_links(rawDataObj):
+
     outputLinks = []
 
-    #get href links
+    # get href links
     rest_size = 300
-    page = etree.HTML(rawDataObj.content)
-    for url in page.xpath("//@href"):
-        if is_valid(url):
-            outputLinks.append(url)
-            rest_size -= 1
-        if rest_size <= 0:
-            break
+    if (rawDataObj.error_message == None):
+        page = etree.HTML(rawDataObj.content)
+        for url in page.xpath("//@href"):
+            if is_valid(url):
+                outputLinks.append(url)
+                rest_size -= 1
+            if rest_size <= 0:
+                break
+
+    global counter
+    counter += 1
+    print "extracting: No.", counter, "wed with", len(outputLinks), "links."
+    of = open("web/" + str(counter) + ".html", 'w')
+    of.write(rawDataObj.content)
+    of.close()
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
@@ -65,10 +76,11 @@ def extract_next_links(rawDataObj):
     Validation of link via is_valid function is done later (see line 42).
     It is not required to remove duplicates that have already been downloaded. 
     The frontier takes care of that.
-    
+
     Suggested library: lxml
     '''
     return outputLinks
+
 
 def is_valid(url):
     '''
@@ -82,12 +94,19 @@ def is_valid(url):
         return False
     try:
         return ".ics.uci.edu" in parsed.hostname \
-            and not (re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
-            + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
-            + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
-            + "|thmx|mso|arff|rtf|jar|csv"\
-            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()) or \
-            re.match(".*(/calendar/|(/misc|/sites|/all|/themes|/modules|/profiles|/css|/field|/node|/theme){3}).*", parsed.path.lower()))
+           and not (re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4" \
+                             + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
+                             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
+                             + "|thmx|mso|arff|rtf|jar|csv" \
+                             + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()) or \
+                    re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4" \
+                             + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
+                             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
+                             + "|thmx|mso|arff|rtf|jar|csv" \
+                             + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.query.lower()) or \
+                    re.match(
+                        "^/calendar.*|.*(/calendar/|(/misc|/sites|/all|/themes|/modules|/profiles|/css|/field|/node|/theme){3}).*",
+                        parsed.path.lower()))
 
     except TypeError:
         print ("TypeError for ", parsed)
