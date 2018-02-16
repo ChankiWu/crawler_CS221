@@ -12,6 +12,7 @@ from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
+subdom_count = 0
 
 @Producer(Haodoz1Qiancw1Xinhew1Link)
 @GetterSetter(OneHaodoz1Qiancw1Xinhew1UnProcessedLink)
@@ -31,15 +32,23 @@ class CrawlerFrame(IApplication):
         self.frame.add(l)
 
     def update(self):
+        global subdom_count
         unprocessed_links = self.frame.get(OneHaodoz1Qiancw1Xinhew1UnProcessedLink)
         if unprocessed_links:
             link = unprocessed_links[0]
             print "Got a link to download:", link.full_url
+
+            subdom_count += 1
+            file = open('Subdomains.txt', 'a')
+            file.write(link.full_url + " , " + str(subdom_count) + "\n")
+            file.close()
+
             downloaded = link.download()
             links = extract_next_links(downloaded)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Haodoz1Qiancw1Xinhew1Link(l))
+
 
     def shutdown(self):
         print (
@@ -58,6 +67,11 @@ def extract_next_links(rawDataObj):
             if is_valid(url):
                 outputLinks.append(url)
                 rest_size -= 1
+            else:
+                file = open('inValid_url.txt', 'a')
+                file.write(url.encode('utf-8') + "\n")
+                file.close()
+
             if rest_size <= 0:
                 break
     else :
