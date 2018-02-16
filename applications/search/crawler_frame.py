@@ -45,25 +45,32 @@ class CrawlerFrame(IApplication):
             downloaded = link.download()
             links = extract_next_links(downloaded)
             for l in links:
-                if is_valid(l) and Robot.Allowed(l,Haodoz1Qiancw1Xinhew1Link(l).user_agent_string):
-                    self.frame.add(Haodoz1Qiancw1Xinhew1Link(l))
+                # if is_valid(l):
+                self.frame.add(Haodoz1Qiancw1Xinhew1Link(l))
 
     def shutdown(self):
         print (
             "Time time spent this session: ",
             time() - self.starttime, " seconds.")
-    
+
+# this function would be called multiple times
 def extract_next_links(rawDataObj):
     outputLinks = []
-
+    url_size = 200
     #get external links
-    if(rawDataObj.http_code == 200 and (rawDataObj.error_message == None or rawDataObj.error_message == '') and not rawDataObj.is_redirected):
-      page = etree.HTML(rawDataObj.content)
-      print('\nEnter in extract_next_links\n')
-      for link in page.xpath("//@href"):
-         if is_valid(link):
-           print(link)
-           outputLinks.append(link)
+    if(rawDataObj.error_message == None):
+        page = etree.HTML(rawDataObj.content)
+        print('\nEnter in extract_next_links\n')
+        for link in page.xpath("//@href"):
+            if is_valid(link):
+              print(link)
+              outputLinks.append(link)
+              url_size -= 1
+              if url_size < 0:
+                 break
+
+    else:
+        print('Got Error links and the error is: ' , rawDataObj.error_message)
         
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
@@ -95,6 +102,7 @@ def is_valid(url):
 
     parsed = urlparse(url)
     path = parsed.path
+    query = parsed.query
 
     split = path.split('.php')
     if len(split) > 2:
@@ -107,15 +115,19 @@ def is_valid(url):
 
     if parsed.scheme not in set(["http", "https"]):
         return False
-    if not validators.url(parsed):
-        return False
+
     try:
         return ".ics.uci.edu" in parsed.hostname \
             and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico|jpg|svg" + "|png|tiff?|mid|mp2|mp3|mp4"\
             + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|webm" \
             + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
-            + "|thmx|mso|arff|rtf|jar|csv|json|xml|eot|otf|ttf|woff|woff2|cml|sli"\
-            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + "|thmx|mso|arff|rtf|jar|csv|json|xml|eot|otf|ttf|woff|woff2"\
+            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", path.lower()) and not \
+                   re.match(".*\.(css|js|bmp|gif|jpe?g|ico|jpg|svg" + "|png|tiff?|mid|mp2|mp3|mp4"\
+            + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|webm" \
+            + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
+            + "|thmx|mso|arff|rtf|jar|csv|json|xml|eot|otf|ttf|woff|woff2"\
+            + "|rm|smil|wmv|swf|wma|zip|rar|gz)$", query.lower())
 
     except TypeError:
         print ("TypeError for ", parsed)
